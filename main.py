@@ -138,3 +138,24 @@ def redirect_to_site(short_key: str, db: Session = Depends(get_db)):
 @app.get("/users/me", response_model=schemas.UserResponse)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+# --- NOUVELLE ROUTE : SUPPRIMER UN LIEN ---
+@app.delete("/links/{short_key}")
+def delete_link(
+    short_key: str, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. On cherche le lien
+    link = db.query(models.URLItem).filter(
+        models.URLItem.short_key == short_key,
+        models.URLItem.owner_id == current_user.id # Sécurité : seul le propriétaire peut supprimer !
+    ).first()
+    
+    if link is None:
+        raise HTTPException(status_code=404, detail="Lien introuvable ou vous n'êtes pas le propriétaire")
+    
+    # 2. On supprime
+    db.delete(link)
+    db.commit()
+    return {"message": "Lien supprimé avec succès"}

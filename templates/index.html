@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Super Raccourcisseur</title>
+    <title>PyShort - Dashboard</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <style>
-        /* Un peu de style pour cacher/montrer les sections */
         .hidden { display: none; }
-        .box { padding: 20px; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px; }
+        .dashboard-table { margin-top: 30px; }
+        .click-count { font-weight: bold; color: #1095c1; }
+        .delete-btn { background-color: #d93526; border-color: #d93526; padding: 5px 10px; font-size: 0.8em; }
     </style>
 </head>
 <body>
     <main class="container">
         <nav>
             <ul>
-                <li><strong>🔗 PythonSaaS</strong></li>
+                <li><strong>🚀 PyShort</strong></li>
             </ul>
             <ul>
                 <li><a href="#" onclick="logout()" id="logoutBtn" class="hidden">Se déconnecter</a></li>
@@ -24,35 +25,54 @@
 
         <section id="loginSection">
             <article>
-                <header>Connectez-vous pour créer des liens</header>
-                <input type="email" id="email" placeholder="Email (ex: test@test.com)">
+                <header>Connectez-vous à votre espace</header>
+                <input type="email" id="email" placeholder="Email">
                 <input type="password" id="password" placeholder="Mot de passe">
-                <button onclick="login()">Se connecter / S'inscrire</button>
+                <button onclick="login()">Entrer</button>
                 <p id="loginError" style="color: red;"></p>
             </article>
         </section>
 
         <section id="appSection" class="hidden">
-            <h1>Bienvenue !</h1>
-            <div class="grid">
-                <input type="url" id="longUrl" placeholder="Collez votre lien long ici (https://...)">
-                <button onclick="shorten()">Raccourcir</button>
-            </div>
-            
-            <div id="result" class="hidden box">
-                <p>Voici votre lien court :</p>
-                <h3><a href="#" id="shortLink" target="_blank">...</a></h3>
+            <article>
+                <header>✨ Créer un nouveau lien</header>
+                <div class="grid">
+                    <input type="url" id="longUrl" placeholder="https://votre-site-super-long.com/...">
+                    <button onclick="shorten()">Raccourcir</button>
+                </div>
+                <div id="result" class="hidden">
+                    <p>Lien prêt : <a href="#" id="shortLink" target="_blank">...</a></p>
+                </div>
+            </article>
+
+            <div class="dashboard-table">
+                <h3>📊 Mes Liens & Stats</h3>
+                <figure>
+                    <table role="grid">
+                        <thead>
+                            <tr>
+                                <th scope="col">Lien Court</th>
+                                <th scope="col">Lien Original</th>
+                                <th scope="col">Clics</th>
+                                <th scope="col">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="linksTableBody">
+                            </tbody>
+                    </table>
+                </figure>
+                <button class="secondary outline" onclick="loadMyLinks()">🔄 Actualiser les stats</button>
             </div>
         </section>
     </main>
 
     <script>
-        // 1. Fonction de Connexion
+        const API_URL = ""; // Laisser vide car on est sur le même domaine
+
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
-            // On appelle l'API /token
             const formData = new FormData();
             formData.append('username', email);
             formData.append('password', password);
@@ -62,52 +82,87 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    // On sauvegarde le token dans le navigateur
                     localStorage.setItem('token', data.access_token);
-                    showApp(); // On affiche l'interface
+                    showApp();
                 } else {
-                    document.getElementById('loginError').innerText = "Erreur : " + data.detail;
+                    document.getElementById('loginError').innerText = "Erreur de connexion";
                 }
-            } catch (error) {
-                console.error("Erreur", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // 2. Fonction pour raccourcir
         async function shorten() {
             const longUrl = document.getElementById('longUrl').value;
             const token = localStorage.getItem('token');
 
-            try {
-                const response = await fetch('/shorten', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + token // On montre patte blanche !
-                    },
-                    body: JSON.stringify({ url: longUrl })
-                });
+            const response = await fetch('/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ url: longUrl })
+            });
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const fullLink = window.location.origin + "/" + data.short_key;
-                    document.getElementById('shortLink').href = fullLink;
-                    document.getElementById('shortLink').innerText = fullLink;
-                    document.getElementById('result').classList.remove('hidden');
-                } else {
-                    alert("Erreur: " + JSON.stringify(data));
-                }
-            } catch (error) {
-                alert("Erreur réseau");
+            const data = await response.json();
+            if (response.ok) {
+                const fullLink = window.location.origin + "/" + data.short_key;
+                document.getElementById('shortLink').href = fullLink;
+                document.getElementById('shortLink').innerText = fullLink;
+                document.getElementById('result').classList.remove('hidden');
+                loadMyLinks(); // Recharger le tableau
             }
         }
 
-        // 3. Gestion de l'affichage (Si déjà connecté)
+        // --- NOUVEAU : Charger la liste des liens ---
+        async function loadMyLinks() {
+            const token = localStorage.getItem('token');
+            // On appelle /users/me qui renvoie l'utilisateur ET ses items (liens)
+            const response = await fetch('/users/me', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            
+            if (response.ok) {
+                const user = await response.json();
+                const tbody = document.getElementById('linksTableBody');
+                tbody.innerHTML = ''; // On vide le tableau avant de remplir
+
+                // On boucle sur chaque lien trouvé
+                user.items.forEach(item => {
+                    const shortUrl = window.location.origin + "/" + item.short_key;
+                    const row = `
+                        <tr>
+                            <td><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
+                            <td><small>${item.url.substring(0, 30)}...</small></td>
+                            <td class="click-count">${item.clicks} 🖱️</td>
+                            <td>
+                                <button class="delete-btn" onclick="deleteLink('${item.short_key}')">Supprimer</button>
+                            </td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+
+        // --- NOUVEAU : Supprimer un lien ---
+        async function deleteLink(shortKey) {
+            if(!confirm("Voulez-vous vraiment supprimer ce lien ?")) return;
+
+            const token = localStorage.getItem('token');
+            const response = await fetch('/links/' + shortKey, {
+                method: 'DELETE',
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+
+            if (response.ok) {
+                loadMyLinks(); // On rafraîchit le tableau
+            } else {
+                alert("Impossible de supprimer");
+            }
+        }
+
         function showApp() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appSection').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
+            loadMyLinks(); // Charger les données dès l'affichage
         }
 
         function logout() {
@@ -115,10 +170,7 @@
             location.reload();
         }
 
-        // Au chargement, on vérifie si on est déjà connecté
-        if (localStorage.getItem('token')) {
-            showApp();
-        }
+        if (localStorage.getItem('token')) showApp();
     </script>
 </body>
 </html>
