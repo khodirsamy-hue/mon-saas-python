@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Super Raccourcisseur</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <style>
+        /* Un peu de style pour cacher/montrer les sections */
+        .hidden { display: none; }
+        .box { padding: 20px; border: 1px solid #ccc; border-radius: 8px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <nav>
+            <ul>
+                <li><strong>🔗 PythonSaaS</strong></li>
+            </ul>
+            <ul>
+                <li><a href="#" onclick="logout()" id="logoutBtn" class="hidden">Se déconnecter</a></li>
+            </ul>
+        </nav>
+
+        <section id="loginSection">
+            <article>
+                <header>Connectez-vous pour créer des liens</header>
+                <input type="email" id="email" placeholder="Email (ex: test@test.com)">
+                <input type="password" id="password" placeholder="Mot de passe">
+                <button onclick="login()">Se connecter / S'inscrire</button>
+                <p id="loginError" style="color: red;"></p>
+            </article>
+        </section>
+
+        <section id="appSection" class="hidden">
+            <h1>Bienvenue !</h1>
+            <div class="grid">
+                <input type="url" id="longUrl" placeholder="Collez votre lien long ici (https://...)">
+                <button onclick="shorten()">Raccourcir</button>
+            </div>
+            
+            <div id="result" class="hidden box">
+                <p>Voici votre lien court :</p>
+                <h3><a href="#" id="shortLink" target="_blank">...</a></h3>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. Fonction de Connexion
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // On appelle l'API /token
+            const formData = new FormData();
+            formData.append('username', email);
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/token', { method: 'POST', body: formData });
+                const data = await response.json();
+
+                if (response.ok) {
+                    // On sauvegarde le token dans le navigateur
+                    localStorage.setItem('token', data.access_token);
+                    showApp(); // On affiche l'interface
+                } else {
+                    document.getElementById('loginError').innerText = "Erreur : " + data.detail;
+                }
+            } catch (error) {
+                console.error("Erreur", error);
+            }
+        }
+
+        // 2. Fonction pour raccourcir
+        async function shorten() {
+            const longUrl = document.getElementById('longUrl').value;
+            const token = localStorage.getItem('token');
+
+            try {
+                const response = await fetch('/shorten', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token // On montre patte blanche !
+                    },
+                    body: JSON.stringify({ url: longUrl })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const fullLink = window.location.origin + "/" + data.short_key;
+                    document.getElementById('shortLink').href = fullLink;
+                    document.getElementById('shortLink').innerText = fullLink;
+                    document.getElementById('result').classList.remove('hidden');
+                } else {
+                    alert("Erreur: " + JSON.stringify(data));
+                }
+            } catch (error) {
+                alert("Erreur réseau");
+            }
+        }
+
+        // 3. Gestion de l'affichage (Si déjà connecté)
+        function showApp() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('appSection').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            location.reload();
+        }
+
+        // Au chargement, on vérifie si on est déjà connecté
+        if (localStorage.getItem('token')) {
+            showApp();
+        }
+    </script>
+</body>
+</html>
