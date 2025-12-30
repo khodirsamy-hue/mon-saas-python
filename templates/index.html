@@ -37,8 +37,8 @@
             <article>
                 <header>✨ Créer un nouveau lien</header>
                 <div class="grid">
-                    <input type="url" id="longUrl" placeholder="https://votre-site-super-long.com/...">
-                    <button onclick="shorten()">Raccourcir</button>
+                    <input type="url" id="longUrl" placeholder="Votre lien long (https://...)" required>
+                    <input type="text" id="customKey" placeholder="Alias (ex: mon-cv)"> <button onclick="shorten()">Raccourcir</button>
                 </div>
                 <div id="result" class="hidden">
                     <p>Lien prêt : <a href="#" id="shortLink" target="_blank">...</a></p>
@@ -91,24 +91,32 @@
         }
 
         async function shorten() {
-            const longUrl = document.getElementById('longUrl').value;
-            const token = localStorage.getItem('token');
+    const longUrl = document.getElementById('longUrl').value;
+    const customKey = document.getElementById('customKey').value; // On récupère l'alias
+    const token = localStorage.getItem('token');
 
-            const response = await fetch('/shorten', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                body: JSON.stringify({ url: longUrl })
-            });
+    // On prépare les données (on envoie custom_key seulement si rempli)
+    const payload = { url: longUrl };
+    if (customKey) payload.custom_key = customKey;
 
-            const data = await response.json();
-            if (response.ok) {
-                const fullLink = window.location.origin + "/" + data.short_key;
-                document.getElementById('shortLink').href = fullLink;
-                document.getElementById('shortLink').innerText = fullLink;
-                document.getElementById('result').classList.remove('hidden');
-                loadMyLinks(); // Recharger le tableau
-            }
-        }
+    const response = await fetch('/shorten', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+        const fullLink = window.location.origin + "/" + data.short_key;
+        document.getElementById('shortLink').href = fullLink;
+        document.getElementById('shortLink').innerText = fullLink;
+        document.getElementById('result').classList.remove('hidden');
+        loadMyLinks(); 
+    } else {
+        alert("Erreur : " + data.detail); // Affiche "Alias déjà pris" si besoin
+    }
+}
 
         // --- NOUVEAU : Charger la liste des liens ---
         async function loadMyLinks() {

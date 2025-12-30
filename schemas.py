@@ -14,7 +14,7 @@ class URLBase(BaseModel):
     url: str
 
 class URLCreate(URLBase):
-    pass
+    custom_key: str | None = None  # Nouveau : L'utilisateur peut proposer son mot (ou rien)
 
 class URLResponse(URLBase):
     short_key: str

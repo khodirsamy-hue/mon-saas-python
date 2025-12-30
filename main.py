@@ -107,16 +107,24 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
 def create_short_link(
     item: schemas.URLCreate, 
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user) # <--- La sécurité est ici !
+    current_user: models.User = Depends(get_current_user)
 ):
-    key = generate_short_key()
+    if item.custom_key:
+        # 1. Si l'utilisateur veut un alias, on vérifie s'il est libre
+        existing_link = db.query(models.URLItem).filter(models.URLItem.short_key == item.custom_key).first()
+        if existing_link:
+            raise HTTPException(status_code=400, detail="Désolé, cet alias est déjà pris !")
+        key = item.custom_key
+    else:
+        # 2. Sinon, on génère un aléatoire
+        key = generate_short_key()
     
-    # On lie l'URL à l'utilisateur connecté (owner_id)
+    # On crée le lien
     new_url = models.URLItem(
-    url=item.url,  # <--- On utilise 'url' ici aussi
-    short_key=key, 
-    owner_id=current_user.id
-)
+        url=item.url, 
+        short_key=key, 
+        owner_id=current_user.id
+    )
     
     db.add(new_url)
     db.commit()
