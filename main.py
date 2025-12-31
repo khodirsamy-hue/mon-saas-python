@@ -1,5 +1,6 @@
 import string
 import random
+import stripe
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -188,3 +189,32 @@ def upgrade_me(
     current_user.is_premium = True
     db.commit()
     return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
+
+# --- CONFIGURATION STRIPE ---
+# ⚠️ Remplace par TA Clé Secrète (celle qui commence par sk_test_...)
+stripe.api_key = "sk_test_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" 
+
+@app.post("/create-checkout-session")
+def create_checkout_session(current_user: models.User = Depends(get_current_user)):
+    # On crée la session de paiement sur les serveurs de Stripe
+    checkout_session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price_data': {
+                'currency': 'eur',
+                'product_data': {
+                    'name': 'Abonnement PyShort PRO',
+                },
+                'unit_amount': 499,  # 499 cents = 4.99€
+            },
+            'quantity': 1,
+        }],
+        mode='payment', # Paiement unique pour simplifier (pas d'abo mensuel complexe pour l'instant)
+        
+        # Où rediriger l'utilisateur après ?
+        success_url='https://pyshort-eds1.onrender.com/success?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url='https://pyshort-eds1.onrender.com',
+    )
+    
+    # On renvoie l'URL de paiement au Frontend
+    return {"checkout_url": checkout_session.url}

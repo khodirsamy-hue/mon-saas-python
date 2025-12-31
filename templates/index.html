@@ -230,9 +230,24 @@
             location.reload();
         }
 
-        function startPayment() {
-            alert("Intégration Stripe à venir à l'étape 3 !");
-        }
+        async function startPayment() {
+    const token = localStorage.getItem('token');
+    
+    // 1. On demande au backend de créer la session
+    const response = await fetch('/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token }
+    });
+
+    const data = await response.json();
+
+    // 2. Si ça marche, on redirige l'utilisateur vers Stripe
+    if (data.checkout_url) {
+        window.location.href = data.checkout_url;
+    } else {
+        alert("Erreur lors de la création du paiement");
+    }
+}
 
         if (localStorage.getItem('token')) showApp();
     </script>
