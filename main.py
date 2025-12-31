@@ -192,30 +192,51 @@ def upgrade_me(
     return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
 
 # --- CONFIGURATION STRIPE ---
-# ⚠️ Remplace par TA Clé Secrète (celle qui commence par sk_test_...)
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 
+# 1. CRÉATION DU PAIEMENT (Avec l'identité de l'utilisateur)
 @app.post("/create-checkout-session")
 def create_checkout_session(current_user: models.User = Depends(get_current_user)):
-    # On crée la session de paiement sur les serveurs de Stripe
+    # ⚠️ IMPORTANT : Vérifie que c'est bien l'adresse exacte de ton site Render ci-dessous !
+    domain_url = "https://pyshort-eds1.onrender.com" 
+    
     checkout_session = stripe.checkout.Session.create(
         payment_method_types=['card'],
+        # C'est ici qu'on colle l'étiquette avec l'ID du client pour le retrouver après
+        client_reference_id=str(current_user.id), 
         line_items=[{
             'price_data': {
                 'currency': 'eur',
-                'product_data': {
-                    'name': 'Abonnement PyShort PRO',
-                },
-                'unit_amount': 499,  # 499 cents = 4.99€
+                'product_data': {'name': 'Abonnement PyShort PRO'},
+                'unit_amount': 499,
             },
             'quantity': 1,
         }],
-        mode='payment', # Paiement unique pour simplifier (pas d'abo mensuel complexe pour l'instant)
-        
-        # Où rediriger l'utilisateur après ?
-        success_url='https://pyshort-eds1.onrender.com/success?session_id={CHECKOUT_SESSION_ID}',
-        cancel_url='https://pyshort-eds1.onrender.com',
+        mode='payment',
+        # On redirige vers la route /success qu'on crée juste en dessous
+        success_url=domain_url + '/success?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=domain_url,
     )
-    
-    # On renvoie l'URL de paiement au Frontend
     return {"checkout_url": checkout_session.url}
+
+# 2. LA VALIDATION (Le tampon "Payé")
+@app.get("/success")
+def success_payment(session_id: str, db: Session = Depends(get_db)):
+    # On demande à Stripe : "Alors, c'est payé ?"
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+    except:
+        return {"error": "Session invalide"}
+    
+    if session.payment_status == 'paid':
+        # On lit l'étiquette pour savoir QUI a payé
+        user_id = session.client_reference_id
+        user = db.query(models.User).filter(models.User.id == user_id).first()
+        
+        if user:
+            # On active le mode Premium
+            user.is_premium = True
+            db.commit()
+            return {"message": "✅ Paiement réussi ! Vous êtes maintenant MEMBRE PRO. Retournez à l'accueil pour profiter de vos avantages."}
+    
+    return {"error": "Paiement non validé."}
