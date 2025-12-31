@@ -143,54 +143,6 @@ def create_short_link(
     db.refresh(new_url)
     return new_url
 
-# 4. Redirection (PUBLIC : Tout le monde peut cliquer)
-@app.get("/{short_key}")
-def redirect_to_site(short_key: str, db: Session = Depends(get_db)):
-    url_item = db.query(models.URLItem).filter(models.URLItem.short_key == short_key).first()
-    if url_item is None:
-        raise HTTPException(status_code=404, detail="Lien introuvable")
-    
-    url_item.clicks += 1
-    db.commit()
-    return RedirectResponse(url=url_item.url)
-
-# 5. Voir MES liens (PROTÉGÉ)
-@app.get("/users/me", response_model=schemas.UserResponse)
-def read_users_me(current_user: models.User = Depends(get_current_user)):
-    return current_user
-
-# --- NOUVELLE ROUTE : SUPPRIMER UN LIEN ---
-@app.delete("/links/{short_key}")
-def delete_link(
-    short_key: str, 
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    # 1. On cherche le lien
-    link = db.query(models.URLItem).filter(
-        models.URLItem.short_key == short_key,
-        models.URLItem.owner_id == current_user.id # Sécurité : seul le propriétaire peut supprimer !
-    ).first()
-    
-    if link is None:
-        raise HTTPException(status_code=404, detail="Lien introuvable ou vous n'êtes pas le propriétaire")
-    
-    # 2. On supprime
-    db.delete(link)
-    db.commit()
-    return {"message": "Lien supprimé avec succès"}
-
-# --- CHEAT CODE (A SUPPRIMER PLUS TARD) ---
-@app.get("/admin/upgrade_me")
-def upgrade_me(
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
-):
-    # On passe l'utilisateur en Premium
-    current_user.is_premium = True
-    db.commit()
-    return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
-
 # --- CONFIGURATION STRIPE ---
 stripe.api_key = os.getenv("STRIPE_API_KEY")
 
@@ -240,3 +192,52 @@ def success_payment(session_id: str, db: Session = Depends(get_db)):
             return {"message": "✅ Paiement réussi ! Vous êtes maintenant MEMBRE PRO. Retournez à l'accueil pour profiter de vos avantages."}
     
     return {"error": "Paiement non validé."}
+
+# 4. Redirection (PUBLIC : Tout le monde peut cliquer)
+@app.get("/{short_key}")
+def redirect_to_site(short_key: str, db: Session = Depends(get_db)):
+    url_item = db.query(models.URLItem).filter(models.URLItem.short_key == short_key).first()
+    if url_item is None:
+        raise HTTPException(status_code=404, detail="Lien introuvable")
+    
+    url_item.clicks += 1
+    db.commit()
+    return RedirectResponse(url=url_item.url)
+
+# 5. Voir MES liens (PROTÉGÉ)
+@app.get("/users/me", response_model=schemas.UserResponse)
+def read_users_me(current_user: models.User = Depends(get_current_user)):
+    return current_user
+
+# --- NOUVELLE ROUTE : SUPPRIMER UN LIEN ---
+@app.delete("/links/{short_key}")
+def delete_link(
+    short_key: str, 
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # 1. On cherche le lien
+    link = db.query(models.URLItem).filter(
+        models.URLItem.short_key == short_key,
+        models.URLItem.owner_id == current_user.id # Sécurité : seul le propriétaire peut supprimer !
+    ).first()
+    
+    if link is None:
+        raise HTTPException(status_code=404, detail="Lien introuvable ou vous n'êtes pas le propriétaire")
+    
+    # 2. On supprime
+    db.delete(link)
+    db.commit()
+    return {"message": "Lien supprimé avec succès"}
+
+# --- CHEAT CODE (A SUPPRIMER PLUS TARD) ---
+@app.get("/admin/upgrade_me")
+def upgrade_me(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # On passe l'utilisateur en Premium
+    current_user.is_premium = True
+    db.commit()
+    return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
+
