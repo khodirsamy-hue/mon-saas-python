@@ -177,3 +177,14 @@ def delete_link(
     db.delete(link)
     db.commit()
     return {"message": "Lien supprimé avec succès"}
+
+# --- CHEAT CODE (A SUPPRIMER PLUS TARD) ---
+@app.get("/admin/upgrade_me")
+def upgrade_me(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    # On passe l'utilisateur en Premium
+    current_user.is_premium = True
+    db.commit()
+    return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
