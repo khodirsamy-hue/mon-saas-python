@@ -10,6 +10,8 @@
         .dashboard-table { margin-top: 30px; }
         .click-count { font-weight: bold; color: #1095c1; }
         .delete-btn { background-color: #d93526; border-color: #d93526; padding: 5px 10px; font-size: 0.8em; }
+        /* Style pour les boutons côte à côte */
+        .auth-buttons { display: flex; gap: 10px; }
     </style>
 </head>
 <body>
@@ -25,11 +27,19 @@
 
         <section id="loginSection">
             <article>
-                <header>Connectez-vous à votre espace</header>
-                <input type="email" id="email" placeholder="Email">
+                <header>Bienvenue</header>
+                <p>Connectez-vous ou créez un compte pour gérer vos liens.</p>
+                
+                <input type="email" id="email" placeholder="Email (ex: moi@test.com)">
                 <input type="password" id="password" placeholder="Mot de passe">
-                <button onclick="login()">Entrer</button>
-                <p id="loginError" style="color: red;"></p>
+                
+                <div class="auth-buttons">
+                    <button onclick="login()">Se connecter</button>
+                    <button onclick="register()" class="secondary outline">Créer un compte</button>
+                </div>
+                
+                <p id="loginError" style="color: red; margin-top: 10px;"></p>
+                <p id="registerSuccess" style="color: green; margin-top: 10px;"></p>
             </article>
         </section>
 
@@ -38,7 +48,8 @@
                 <header>✨ Créer un nouveau lien</header>
                 <div class="grid">
                     <input type="url" id="longUrl" placeholder="Votre lien long (https://...)" required>
-                    <input type="text" id="customKey" placeholder="Alias (ex: mon-cv)"> <button onclick="shorten()">Raccourcir</button>
+                    <input type="text" id="customKey" placeholder="Alias optionnel (ex: mon-cv)">
+                    <button onclick="shorten()">Raccourcir</button>
                 </div>
                 <div id="result" class="hidden">
                     <p>Lien prêt : <a href="#" id="shortLink" target="_blank">...</a></p>
@@ -53,7 +64,7 @@
                             <tr>
                                 <th scope="col">Lien Court</th>
                                 <th scope="col">Lien Original</th>
-                                <th scope="col">Clics</th>
+                                <th scope="col">QR</th> <th scope="col">Clics</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
@@ -67,12 +78,40 @@
     </main>
 
     <script>
-        const API_URL = ""; // Laisser vide car on est sur le même domaine
+        // --- 1. INSCRIPTION (Nouveau) ---
+        async function register() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
+            if(!email || !password) {
+                alert("Merci de remplir l'email et le mot de passe.");
+                return;
+            }
+
+            try {
+                // On envoie en JSON pour l'inscription
+                const response = await fetch('/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email, password: password })
+                });
+
+                if (response.ok) {
+                    document.getElementById('registerSuccess').innerText = "Compte créé avec succès ! Vous pouvez cliquer sur 'Se connecter'.";
+                    document.getElementById('loginError').innerText = "";
+                } else {
+                    const data = await response.json();
+                    document.getElementById('loginError').innerText = "Erreur Inscription : " + (data.detail || "Email déjà pris");
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        // --- 2. CONNEXION ---
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             
+            // On envoie en FormData pour le login (OAuth2 standard)
             const formData = new FormData();
             formData.append('username', email);
             formData.append('password', password);
@@ -83,45 +122,46 @@
 
                 if (response.ok) {
                     localStorage.setItem('token', data.access_token);
+                    document.getElementById('registerSuccess').innerText = "";
+                    document.getElementById('loginError').innerText = "";
                     showApp();
                 } else {
-                    document.getElementById('loginError').innerText = "Erreur de connexion";
+                    document.getElementById('loginError').innerText = "Email ou mot de passe incorrect.";
                 }
             } catch (error) { console.error(error); }
         }
 
+        // --- 3. RACCOURCIR ---
         async function shorten() {
-    const longUrl = document.getElementById('longUrl').value;
-    const customKey = document.getElementById('customKey').value; // On récupère l'alias
-    const token = localStorage.getItem('token');
+            const longUrl = document.getElementById('longUrl').value;
+            const customKey = document.getElementById('customKey').value;
+            const token = localStorage.getItem('token');
 
-    // On prépare les données (on envoie custom_key seulement si rempli)
-    const payload = { url: longUrl };
-    if (customKey) payload.custom_key = customKey;
+            const payload = { url: longUrl };
+            if (customKey) payload.custom_key = customKey;
 
-    const response = await fetch('/shorten', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify(payload)
-    });
+            const response = await fetch('/shorten', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify(payload)
+            });
 
-    const data = await response.json();
+            const data = await response.json();
+            
+            if (response.ok) {
+                const fullLink = window.location.origin + "/" + data.short_key;
+                document.getElementById('shortLink').href = fullLink;
+                document.getElementById('shortLink').innerText = fullLink;
+                document.getElementById('result').classList.remove('hidden');
+                loadMyLinks(); 
+            } else {
+                alert("Erreur : " + data.detail);
+            }
+        }
 
-    if (response.ok) {
-        const fullLink = window.location.origin + "/" + data.short_key;
-        document.getElementById('shortLink').href = fullLink;
-        document.getElementById('shortLink').innerText = fullLink;
-        document.getElementById('result').classList.remove('hidden');
-        loadMyLinks(); 
-    } else {
-        alert("Erreur : " + data.detail); // Affiche "Alias déjà pris" si besoin
-    }
-}
-
-        // --- NOUVEAU : Charger la liste des liens ---
+        // --- 4. CHARGER MES LIENS (Avec QR Codes) ---
         async function loadMyLinks() {
             const token = localStorage.getItem('token');
-            // On appelle /users/me qui renvoie l'utilisateur ET ses items (liens)
             const response = await fetch('/users/me', {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
@@ -129,18 +169,25 @@
             if (response.ok) {
                 const user = await response.json();
                 const tbody = document.getElementById('linksTableBody');
-                tbody.innerHTML = ''; // On vide le tableau avant de remplir
+                tbody.innerHTML = ''; 
 
-                // On boucle sur chaque lien trouvé
                 user.items.forEach(item => {
                     const shortUrl = window.location.origin + "/" + item.short_key;
+                    // L'API QR Code :
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${shortUrl}`;
+
                     const row = `
                         <tr>
                             <td><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
-                            <td><small>${item.url.substring(0, 30)}...</small></td>
+                            <td><small>${item.url.substring(0, 20)}...</small></td>
+                            <td>
+                                <a href="${qrUrl}" download="qrcode.png" target="_blank">
+                                    <img src="${qrUrl}" alt="QR" width="40">
+                                </a>
+                            </td>
                             <td class="click-count">${item.clicks} 🖱️</td>
                             <td>
-                                <button class="delete-btn" onclick="deleteLink('${item.short_key}')">Supprimer</button>
+                                <button class="delete-btn" onclick="deleteLink('${item.short_key}')">X</button>
                             </td>
                         </tr>
                     `;
@@ -149,28 +196,23 @@
             }
         }
 
-        // --- NOUVEAU : Supprimer un lien ---
+        // --- 5. SUPPRIMER ---
         async function deleteLink(shortKey) {
-            if(!confirm("Voulez-vous vraiment supprimer ce lien ?")) return;
-
+            if(!confirm("Supprimer ce lien ?")) return;
             const token = localStorage.getItem('token');
             const response = await fetch('/links/' + shortKey, {
                 method: 'DELETE',
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-
-            if (response.ok) {
-                loadMyLinks(); // On rafraîchit le tableau
-            } else {
-                alert("Impossible de supprimer");
-            }
+            if (response.ok) loadMyLinks();
         }
 
+        // GESTION AFFICHAGE
         function showApp() {
             document.getElementById('loginSection').classList.add('hidden');
             document.getElementById('appSection').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
-            loadMyLinks(); // Charger les données dès l'affichage
+            loadMyLinks();
         }
 
         function logout() {
