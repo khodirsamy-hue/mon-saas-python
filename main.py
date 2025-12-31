@@ -109,17 +109,27 @@ def create_short_link(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
+    # 1. Vérification Alias Personnalisé (Le Vigile)
     if item.custom_key:
-        # 1. Si l'utilisateur veut un alias, on vérifie s'il est libre
+        # Si l'utilisateur n'est PAS premium, on bloque !
+        if not current_user.is_premium:
+            raise HTTPException(
+                status_code=403, 
+                detail="Les alias personnalisés sont réservés aux membres PREMIUM (4.99€/mois)."
+            )
+        
+        # Si c'est un membre premium, on vérifie si le mot est libre
         existing_link = db.query(models.URLItem).filter(models.URLItem.short_key == item.custom_key).first()
         if existing_link:
             raise HTTPException(status_code=400, detail="Désolé, cet alias est déjà pris !")
+        
         key = item.custom_key
+    
     else:
-        # 2. Sinon, on génère un aléatoire
+        # 2. Pas d'alias demandé -> On génère une clé aléatoire (Gratuit)
         key = generate_short_key()
     
-    # On crée le lien
+    # 3. Création du lien dans la base
     new_url = models.URLItem(
         url=item.url, 
         short_key=key, 
