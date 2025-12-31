@@ -193,7 +193,7 @@ def upgrade_me(
 
 # --- CONFIGURATION STRIPE ---
 # ⚠️ Remplace par TA Clé Secrète (celle qui commence par sk_test_...)
-stripe.api_key = "STRIPE_API_KEY" 
+stripe.api_key = os.getenv("STRIPE_API_KEY")
 
 @app.post("/create-checkout-session")
 def create_checkout_session(current_user: models.User = Depends(get_current_user)):
