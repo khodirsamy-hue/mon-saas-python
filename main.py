@@ -173,12 +173,12 @@ def create_checkout_session(current_user: models.User = Depends(get_current_user
 
 # 2. LA VALIDATION (Le tampon "Payé")
 @app.get("/success")
-def success_payment(session_id: str, db: Session = Depends(get_db)):
+def success_payment(request: Request, session_id: str, db: Session = Depends(get_db)):
     # On demande à Stripe : "Alors, c'est payé ?"
     try:
         session = stripe.checkout.Session.retrieve(session_id)
     except:
-        return {"error": "Session invalide"}
+        return templates.TemplateResponse("index.html", {"request": request}) # En cas d'erreur, retour accueil
     
     if session.payment_status == 'paid':
         # On lit l'étiquette pour savoir QUI a payé
@@ -189,7 +189,8 @@ def success_payment(session_id: str, db: Session = Depends(get_db)):
             # On active le mode Premium
             user.is_premium = True
             db.commit()
-            return {"message": "✅ Paiement réussi ! Vous êtes maintenant MEMBRE PRO. Retournez à l'accueil pour profiter de vos avantages."}
+            # C'est ici qu'on renvoie la belle page HTML 🎉
+            return templates.TemplateResponse("success.html", {"request": request})
     
     return {"error": "Paiement non validé."}
 

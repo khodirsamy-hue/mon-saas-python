@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paiement Réussi !</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            text-align: center;
+            background-color: #f0fdf4; /* Un vert très très clair */
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 { color: #1095c1; }
+    </style>
+</head>
+<body>
+
+    <article class="card">
+        <div class="icon">👑</div>
+        <h1>Félicitations !</h1>
+        <p>Votre paiement a été validé avec succès.</p>
+        <p>Vous faites maintenant partie du club <strong>PREMIUM</strong>.</p>
+        <br>
+        <a href="/" role="button">Retourner à mon Dashboard</a>
+    </article>
+
+    <script>
+        // Lance les confettis au chargement de la page
+        window.onload = function() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        };
+    </script>
+
+</body>
+</html>
