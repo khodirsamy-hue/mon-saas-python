@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>PyShort | L'outil de lien pour les Pros</title>
+    <meta name="description" content="Raccourcissez vos URL, analysez vos clics et boostez votre marketing avec PyShort. La solution SaaS professionnelle pour vos liens.">
+    <meta property="og:title" content="PyShort - Domptez vos liens">
+    <meta property="og:description" content="L'outil ultime pour gérer vos liens courts. Analytics, QR Codes et API puissante.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=1200&q=80">
+    <meta property="og:url" content="https://pyshort.io">
+    <meta name="theme-color" content="#2563eb">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
     
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -29,6 +36,9 @@
         .hidden { display: none !important; }
         .fade-in { animation: fadeIn 0.5s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* Animation de chargement */
+        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
@@ -47,7 +57,6 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4"><path fill-rule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clip-rule="evenodd" /></svg>
                         <span>PREMIUM</span>
                     </div>
-
                     <button id="navLoginBtn" onclick="showLogin()" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition">Connexion</button>
                     <button id="premiumBtn" onclick="showPricing()" class="hidden bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-800 transition transform hover:-translate-y-0.5">Devenir Premium</button>
                     <button id="dashboardBtn" onclick="showApp()" class="hidden text-sm font-medium text-slate-600 hover:text-brand-600 transition">Tableau de bord</button>
@@ -60,101 +69,63 @@
     </nav>
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
         <section id="landingSection" class="fade-in">
             <div class="text-center py-20">
                 <h1 class="text-5xl md:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
                     Domptez vos liens <br>
                     <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-indigo-600">avec précision.</span>
                 </h1>
-                <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-10">
-                    La solution professionnelle pour raccourcir, partager et analyser vos URL. 
-                    Rejoignez les experts qui optimisent leur trafic avec PyShort.
-                </p>
+                <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-10">La solution professionnelle pour raccourcir, partager et analyser vos URL.</p>
                 <div class="flex justify-center gap-4">
-                    <button onclick="showLogin()" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-brand-500 transition hover:shadow-brand-500/30">Commencer gratuitement</button>
-                    <button onclick="showPricing()" class="bg-white text-slate-700 border border-slate-300 px-8 py-3 rounded-xl font-semibold hover:bg-slate-50 transition">Voir les tarifs</button>
+                    <button onclick="showLogin()" class="bg-brand-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:bg-brand-500 transition">Commencer</button>
+                    <button onclick="showPricing()" class="bg-white text-slate-700 border border-slate-300 px-8 py-3 rounded-xl font-semibold hover:bg-slate-50 transition">Tarifs</button>
                 </div>
             </div>
-
             <div class="grid md:grid-cols-3 gap-8 mt-10">
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition group">
-                    <div class="w-12 h-12 bg-blue-50 text-brand-600 rounded-lg flex items-center justify-center mb-4 group-hover:bg-brand-600 group-hover:text-white transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>
-                    </div>
-                    <h3 class="font-bold text-xl mb-2">Ultra Rapide</h3>
-                    <p class="text-slate-500">Infrastructure cloud haute performance pour des redirections instantanées sans latence.</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition group">
-                    <div class="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-4 group-hover:bg-indigo-600 group-hover:text-white transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" /></svg>
-                    </div>
-                    <h3 class="font-bold text-xl mb-2">Analytiques</h3>
-                    <p class="text-slate-500">Suivez chaque clic en temps réel. Tableaux de bord détaillés pour les membres PRO.</p>
-                </div>
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition group">
-                    <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-lg flex items-center justify-center mb-4 group-hover:bg-teal-600 group-hover:text-white transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" /></svg>
-                    </div>
-                    <h3 class="font-bold text-xl mb-2">Sécurisé</h3>
-                    <p class="text-slate-500">Vos données sont chiffrées et protégées. HTTPS activé par défaut pour tous vos liens.</p>
-                </div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100"><h3 class="font-bold text-xl mb-2">⚡ Rapide</h3><p class="text-slate-500">Redirections instantanées.</p></div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100"><h3 class="font-bold text-xl mb-2">📊 Analytics</h3><p class="text-slate-500">Suivi des clics en temps réel.</p></div>
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100"><h3 class="font-bold text-xl mb-2">🔒 Sécurisé</h3><p class="text-slate-500">HTTPS par défaut.</p></div>
             </div>
         </section>
 
         <section id="loginSection" class="hidden fade-in max-w-md mx-auto mt-10">
             <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
                 <h2 class="text-2xl font-bold text-center mb-6 text-slate-800">Espace Client</h2>
-                
                 <div class="flex bg-slate-100 p-1 rounded-lg mb-6">
                     <button onclick="toggleAuth('login')" id="tabLogin" class="flex-1 py-2 rounded-md text-sm font-medium bg-white shadow-sm text-slate-800 transition">Connexion</button>
                     <button onclick="toggleAuth('register')" id="tabRegister" class="flex-1 py-2 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 transition">Inscription</button>
                 </div>
-
                 <div id="formLogin" class="space-y-4">
-                    <input type="email" id="email" placeholder="Email professionnel" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
-                    <input type="password" id="password" placeholder="Mot de passe" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
-                    <button onclick="login()" class="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-500 transition">Se connecter</button>
+                    <input type="email" id="email" placeholder="Email pro" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <input type="password" id="password" placeholder="Mot de passe" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <button id="btnLoginAction" onclick="login()" class="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-500 transition">Se connecter</button>
                 </div>
-
                 <div id="formRegister" class="hidden space-y-4">
-                    <input type="email" id="reg_email" placeholder="Votre email" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
-                    <input type="password" id="reg_password" placeholder="Choisir un mot de passe" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition">
-                    <button onclick="register()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-700 transition">Créer mon compte</button>
+                    <input type="email" id="reg_email" placeholder="Votre email" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <input type="password" id="reg_password" placeholder="Choisir mot de passe" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <button id="btnRegAction" onclick="register()" class="w-full bg-slate-800 text-white py-3 rounded-lg font-semibold hover:bg-slate-700 transition">Créer mon compte</button>
                 </div>
-
                 <p id="msgBox" class="text-center text-sm text-red-500 mt-4 h-5"></p>
             </div>
         </section>
 
         <section id="pricingSection" class="hidden fade-in">
-            <h2 class="text-3xl font-bold text-center mb-10">Choisissez votre plan</h2>
+            <h2 class="text-3xl font-bold text-center mb-10">Nos Offres</h2>
             <div class="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm text-center">
                     <h3 class="text-xl font-semibold text-slate-600">Découverte</h3>
                     <div class="text-4xl font-bold my-4">0 €</div>
-                    <ul class="text-slate-500 space-y-3 mb-8 text-left pl-10">
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Liens aléatoires</li>
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> QR Codes inclus</li>
-                        <li class="flex items-center gap-2 text-slate-300"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Alias personnalisés</li>
-                        <li class="flex items-center gap-2 text-slate-300"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg> Support prioritaire</li>
-                    </ul>
+                    <ul class="text-slate-500 space-y-3 mb-8 text-left pl-10"><li>✔️ Liens aléatoires</li><li>✔️ QR Codes</li></ul>
                     <button onclick="showApp()" class="w-full py-3 rounded-xl border border-slate-300 font-semibold text-slate-700 hover:bg-slate-50 transition">Continuer Gratuitement</button>
                 </div>
                 <div class="bg-white p-8 rounded-2xl border-2 border-brand-500 shadow-xl relative text-center transform md:scale-105">
-                    <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">RECOMMANDÉ</div>
+                    <div class="absolute top-0 right-0 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">PRO</div>
                     <h3 class="text-xl font-semibold text-brand-600">BUSINESS</h3>
                     <div class="text-4xl font-bold my-4 text-slate-900">4.99 €</div>
-                    <ul class="text-slate-600 space-y-3 mb-8 text-left pl-10">
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Tout du plan gratuit</li>
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> <strong>Alias Personnalisés</strong></li>
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> <strong>Graphiques & Stats</strong></li>
-                        <li class="flex items-center gap-2"><svg class="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg> Support VIP</li>
-                    </ul>
+                    <ul class="text-slate-600 space-y-3 mb-8 text-left pl-10"><li>✔️ Alias Personnalisés</li><li>✔️ Graphiques & Stats</li></ul>
                     <button onclick="startPayment()" class="w-full py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 text-white font-bold shadow-lg hover:opacity-90 transition">Passer PRO</button>
                 </div>
             </div>
-            <p class="text-center mt-8 text-slate-400 cursor-pointer hover:text-slate-600" onclick="checkAuthRedirect()">Non merci, je verrai plus tard</p>
         </section>
 
         <section id="appSection" class="hidden fade-in">
@@ -164,40 +135,34 @@
                     Nouveau lien
                 </h2>
                 <div class="flex flex-col md:flex-row gap-4">
-                    <input type="url" id="longUrl" placeholder="https://votre-url-tres-longue.com/..." class="flex-grow px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
-                    <input type="text" id="customKey" placeholder="Alias (Optionnel)" class="md:w-64 px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
-                    <button onclick="shorten()" class="bg-brand-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-500 shadow-md transition whitespace-nowrap">Raccourcir</button>
+                    <input type="url" id="longUrl" placeholder="https://..." class="flex-grow px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <input type="text" id="customKey" placeholder="Alias (Opt)" class="md:w-64 px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-brand-500 outline-none">
+                    <button id="btnShorten" onclick="shorten()" class="bg-brand-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-brand-500 shadow-md transition whitespace-nowrap">Raccourcir</button>
                 </div>
                 <div id="result" class="hidden mt-6 p-4 bg-green-50 border border-green-100 rounded-lg flex items-center justify-between">
                     <div class="flex items-center gap-2 text-green-700">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                        <span>Lien créé :</span>
-                        <a href="#" id="shortLink" target="_blank" class="font-bold underline">...</a>
+                        <span>✅ Lien créé :</span> <a href="#" id="shortLink" target="_blank" class="font-bold underline">...</a>
                     </div>
                 </div>
             </div>
 
             <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-slate-700">Vos Liens Actifs</h3>
-                    <button onclick="loadMyLinks()" class="text-sm text-brand-600 hover:text-brand-800 flex items-center gap-1">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                        Actualiser
-                    </button>
+                    <h3 class="font-bold text-lg text-slate-700">Vos Liens</h3>
+                    <button onclick="loadMyLinks()" class="text-sm text-brand-600 hover:text-brand-800">Actualiser</button>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm text-slate-600">
                         <thead class="bg-slate-50 text-slate-800 uppercase text-xs font-bold">
                             <tr>
                                 <th class="px-6 py-4">Lien Court</th>
-                                <th class="px-6 py-4">Destination</th>
+                                <th class="px-6 py-4">Cible</th>
                                 <th class="px-6 py-4 text-center">QR</th>
                                 <th class="px-6 py-4 text-center">Clics</th>
                                 <th class="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="linksTableBody" class="divide-y divide-slate-100">
-                            </tbody>
+                        <tbody id="linksTableBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
             </div>
@@ -205,120 +170,86 @@
 
         <div id="chartModal" class="hidden fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
             <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-6 relative">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 id="chartTitle" class="text-xl font-bold text-slate-800">Statistiques</h3>
-                    <button onclick="closeChart()" class="text-slate-400 hover:text-slate-600 text-2xl">&times;</button>
-                </div>
-                <div class="relative h-64 md:h-80">
-                    <canvas id="myChart"></canvas>
-                </div>
+                <div class="flex justify-between items-center mb-4"><h3 id="chartTitle" class="text-xl font-bold">Stats</h3><button onclick="closeChart()" class="text-2xl">&times;</button></div>
+                <div class="relative h-64"><canvas id="myChart"></canvas></div>
             </div>
         </div>
-
     </main>
 
-    <footer class="border-t border-slate-200 mt-20 py-10 bg-white">
-        <div class="max-w-7xl mx-auto px-4 text-center text-slate-400 text-sm">
-            <p>&copy; 2026 PyShort SaaS. Designed with passion.</p>
-        </div>
-    </footer>
+    <footer class="border-t border-slate-200 mt-20 py-10 bg-white"><div class="text-center text-slate-400 text-sm"><p>&copy; 2026 PyShort SaaS.</p></div></footer>
 
     <script>
-        // --- UI UTILS ---
+        // UI HELPERS
         function toggleAuth(type) {
-            if(type === 'login') {
-                document.getElementById('formLogin').classList.remove('hidden');
-                document.getElementById('formRegister').classList.add('hidden');
-                document.getElementById('tabLogin').classList.add('bg-white', 'shadow-sm', 'text-slate-800');
-                document.getElementById('tabLogin').classList.remove('text-slate-500');
-                document.getElementById('tabRegister').classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
-                document.getElementById('tabRegister').classList.add('text-slate-500');
-            } else {
-                document.getElementById('formLogin').classList.add('hidden');
-                document.getElementById('formRegister').classList.remove('hidden');
-                document.getElementById('tabRegister').classList.add('bg-white', 'shadow-sm', 'text-slate-800');
-                document.getElementById('tabRegister').classList.remove('text-slate-500');
-                document.getElementById('tabLogin').classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
-                document.getElementById('tabLogin').classList.add('text-slate-500');
-            }
+            const isLogin = type === 'login';
+            document.getElementById('formLogin').classList.toggle('hidden', !isLogin);
+            document.getElementById('formRegister').classList.toggle('hidden', isLogin);
+            document.getElementById('tabLogin').classList.toggle('bg-white', isLogin);
+            document.getElementById('tabLogin').classList.toggle('text-slate-500', !isLogin);
+            document.getElementById('tabRegister').classList.toggle('bg-white', !isLogin);
+            document.getElementById('tabRegister').classList.toggle('text-slate-500', isLogin);
         }
-
-        function hideAll() {
-            ['landingSection', 'loginSection', 'pricingSection', 'appSection'].forEach(id => 
-                document.getElementById(id).classList.add('hidden')
-            );
-        }
-
-        function showLanding() {
-            hideAll();
-            document.getElementById('landingSection').classList.remove('hidden');
-            updateNav(false);
-        }
-
-        function showLogin() {
-            hideAll();
-            document.getElementById('loginSection').classList.remove('hidden');
-        }
-
-        function showPricing() {
-            hideAll();
-            document.getElementById('pricingSection').classList.remove('hidden');
-        }
-
-        function showApp() {
-            hideAll();
-            document.getElementById('appSection').classList.remove('hidden');
-            updateNav(true);
-            loadMyLinks();
-        }
-
+        function hideAll() { ['landingSection','loginSection','pricingSection','appSection'].forEach(id => document.getElementById(id).classList.add('hidden')); }
+        function showLanding() { hideAll(); document.getElementById('landingSection').classList.remove('hidden'); updateNav(false); }
+        function showLogin() { hideAll(); document.getElementById('loginSection').classList.remove('hidden'); }
+        function showPricing() { hideAll(); document.getElementById('pricingSection').classList.remove('hidden'); }
+        function showApp() { hideAll(); document.getElementById('appSection').classList.remove('hidden'); updateNav(true); loadMyLinks(); }
         function updateNav(isLoggedIn) {
-            if (isLoggedIn) {
-                document.getElementById('navLoginBtn').classList.add('hidden');
-                document.getElementById('dashboardBtn').classList.remove('hidden');
-                document.getElementById('logoutBtn').classList.remove('hidden');
+            document.getElementById('navLoginBtn').classList.toggle('hidden', isLoggedIn);
+            document.getElementById('dashboardBtn').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('logoutBtn').classList.toggle('hidden', !isLoggedIn);
+            document.getElementById('premiumBtn').classList.toggle('hidden', !isLoggedIn); // Masqué si connecté (sera géré par loadMyLinks)
+            document.getElementById('proBadge').classList.add('hidden');
+        }
+
+        // LOADING BUTTON HELPER
+        function setLoading(btnId, isLoading, text = "Chargement...") {
+            const btn = document.getElementById(btnId);
+            if(isLoading) {
+                btn.dataset.originalText = btn.innerText;
+                btn.innerHTML = `<span class="spinner"></span> ${text}`;
+                btn.disabled = true;
+                btn.classList.add('opacity-75', 'cursor-not-allowed');
             } else {
-                document.getElementById('navLoginBtn').classList.remove('hidden');
-                document.getElementById('dashboardBtn').classList.add('hidden');
-                document.getElementById('logoutBtn').classList.add('hidden');
-                document.getElementById('premiumBtn').classList.add('hidden');
-                document.getElementById('proBadge').classList.add('hidden');
+                btn.innerHTML = btn.dataset.originalText;
+                btn.disabled = false;
+                btn.classList.remove('opacity-75', 'cursor-not-allowed');
             }
         }
 
-        function checkAuthRedirect() {
-            if(localStorage.getItem('token')) showApp();
-            else showLanding();
-        }
-
-        // --- BACKEND LOGIC ---
+        // LOGIC
         async function register() {
+            setLoading('btnRegAction', true);
             const email = document.getElementById('reg_email').value;
             const password = document.getElementById('reg_password').value;
             try {
                 const res = await fetch('/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password})});
-                if(res.ok) { alert("Compte créé ! Connectez-vous."); toggleAuth('login'); }
+                if(res.ok) { alert("Compte créé !"); toggleAuth('login'); }
                 else alert("Erreur inscription");
             } catch(e) { console.error(e); }
+            setLoading('btnRegAction', false);
         }
 
         async function login() {
+            setLoading('btnLoginAction', true);
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const formData = new FormData(); formData.append('username', email); formData.append('password', password);
-            const res = await fetch('/token', { method: 'POST', body: formData });
-            if(res.ok) {
-                const data = await res.json();
-                localStorage.setItem('token', data.access_token);
-                showApp();
-            } else {
-                document.getElementById('msgBox').innerText = "Identifiants incorrects";
-            }
+            try {
+                const res = await fetch('/token', { method: 'POST', body: formData });
+                if(res.ok) {
+                    const data = await res.json();
+                    localStorage.setItem('token', data.access_token);
+                    showApp();
+                } else { document.getElementById('msgBox').innerText = "Identifiants incorrects"; }
+            } catch(e) { console.error(e); }
+            setLoading('btnLoginAction', false);
         }
-
+        
         function logout() { localStorage.removeItem('token'); showLanding(); }
 
         async function shorten() {
+            setLoading('btnShorten', true);
             const token = localStorage.getItem('token');
             const res = await fetch('/shorten', {
                 method: 'POST',
@@ -333,109 +264,67 @@
                 document.getElementById('shortLink').href = fullLink;
                 document.getElementById('shortLink').innerText = fullLink;
                 resultDiv.classList.remove('hidden');
-                
-                // Petit effet de succès (confetti)
                 confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors: ['#3b82f6', '#1e3a8a'] });
             }
-            else if(res.status === 403) { if(confirm("🔒 Réservé aux membres PRO.\nVoir les offres ?")) showPricing(); }
+            else if(res.status === 403) { if(confirm("🔒 Réservé PRO. Voir offres ?")) showPricing(); }
             else { alert(data.detail); }
+            setLoading('btnShorten', false);
         }
 
         async function loadMyLinks() {
             const token = localStorage.getItem('token');
+            if(!token) return showLanding();
             const res = await fetch('/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
             
             if (res.ok) {
                 const user = await res.json();
-                
-                // UI PREMIUM
                 if (user.is_premium) {
                     document.getElementById('premiumBtn').classList.add('hidden');
                     document.getElementById('proBadge').classList.remove('hidden');
-                    document.getElementById('customKey').placeholder = "Alias personnalisé (ex: mon-cv)";
+                    document.getElementById('customKey').placeholder = "Alias perso (ex: cv)";
                 } else {
                     document.getElementById('premiumBtn').classList.remove('hidden');
                     document.getElementById('proBadge').classList.add('hidden');
-                    document.getElementById('customKey').placeholder = "Alias (ex: google) - PRO seulement";
+                    document.getElementById('customKey').placeholder = "Alias (ex: google) - PRO";
                 }
-
                 const tbody = document.getElementById('linksTableBody');
                 tbody.innerHTML = ''; 
                 user.items.forEach(item => {
                     const shortUrl = window.location.origin + "/" + item.short_key;
-                    const historyData = JSON.stringify(item.click_history);
-                    // On génère l'URL du QR Code
                     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${shortUrl}`;
-                    
+                    const historyData = JSON.stringify(item.click_history);
                     tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr class="hover:bg-slate-50 transition border-b border-slate-50">
                         <td class="px-6 py-4 font-medium text-brand-600"><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
                         <td class="px-6 py-4 text-slate-500 truncate max-w-xs">${item.url}</td>
                         <td class="px-6 py-4 text-center">
-                             <a href="${qrUrl}" download target="_blank" class="inline-block hover:scale-110 transition">
-                                <img src="${qrUrl}" alt="QR" class="w-8 h-8 rounded border border-slate-200">
-                            </a>
+                            <a href="${qrUrl}" download target="_blank" class="inline-block hover:scale-110 transition"><img src="${qrUrl}" class="w-8 h-8 rounded border border-slate-200"></a>
                         </td>
-                        <td class="px-6 py-4 text-center font-bold bg-slate-100 rounded-lg text-slate-600">${item.clicks}</td>
-                        <td class="px-6 py-4 text-right space-x-2 flex justify-end">
-                            <button onclick='openChart("${item.short_key}", ${historyData})' class="text-indigo-500 hover:text-indigo-700 font-medium text-sm border border-indigo-200 px-3 py-1 rounded-md hover:bg-indigo-50 transition flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
-                                Stats
-                            </button>
-                            <button onclick='deleteLink("${item.short_key}")' class="text-red-500 hover:text-red-700 text-sm px-2 py-1 rounded hover:bg-red-50">
-                                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                            </button>
+                        <td class="px-6 py-4 text-center font-bold text-slate-600">${item.clicks}</td>
+                        <td class="px-6 py-4 text-right flex justify-end gap-2">
+                            <button onclick='openChart("${item.short_key}", ${historyData})' class="text-indigo-500 hover:text-indigo-700 border border-indigo-200 px-2 py-1 rounded text-xs">Stats</button>
+                            <button onclick='deleteLink("${item.short_key}")' class="text-red-500 hover:text-red-700 px-2 py-1 text-lg">&times;</button>
                         </td>
                     </tr>`;
                 });
             } else { logout(); }
         }
 
-        // --- CHART ---
         let myChartInstance = null;
         function openChart(shortKey, history) {
             document.getElementById('chartModal').classList.remove('hidden');
-            document.getElementById('chartTitle').innerText = "Statistiques : /" + shortKey;
-            
+            document.getElementById('chartTitle').innerText = "Stats : /" + shortKey;
             const clicksByDate = {};
-            history.forEach(h => {
-                const date = new Date(h.timestamp).toLocaleDateString();
-                clicksByDate[date] = (clicksByDate[date] || 0) + 1;
-            });
-
+            history.forEach(h => { const date = new Date(h.timestamp).toLocaleDateString(); clicksByDate[date] = (clicksByDate[date] || 0) + 1; });
             const ctx = document.getElementById('myChart').getContext('2d');
             if(myChartInstance) myChartInstance.destroy();
-
-            myChartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(clicksByDate),
-                    datasets: [{
-                        label: 'Clics par jour',
-                        data: Object.values(clicksByDate),
-                        backgroundColor: '#3b82f6',
-                        borderRadius: 5
-                    }]
-                },
-                options: { 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
-                    plugins: { legend: { display: false } }
-                }
-            });
+            myChartInstance = new Chart(ctx, { type: 'bar', data: { labels: Object.keys(clicksByDate), datasets: [{ label: 'Clics', data: Object.values(clicksByDate), backgroundColor: '#3b82f6', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } } });
         }
         function closeChart() { document.getElementById('chartModal').classList.add('hidden'); }
+        async function deleteLink(k) { if(confirm("Supprimer ?")) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); } }
+        async function startPayment() { window.location.href = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; }
 
-        // --- ACTIONS ---
-        async function deleteLink(k) { if(confirm("Supprimer ce lien ?")) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); } }
-        async function startPayment() { 
-            const u = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; 
-            window.location.href = u; 
-        }
-
-        // INIT
-        checkAuthRedirect();
+        if(localStorage.getItem('token')) showApp(); else showLanding();
     </script>
 </body>
 </html>
