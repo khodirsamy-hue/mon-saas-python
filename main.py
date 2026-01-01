@@ -250,18 +250,16 @@ def upgrade_me(
     db.commit()
     return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
 
-# --- CONFIGURATION EMAIL ---
+# --- CONFIGURATION EMAIL (VERSION SSL STRICTE) ---
 mail_conf = ConnectionConfig(
     MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
     MAIL_FROM = os.getenv("MAIL_USERNAME"),
     
-    # --- ON CHANGE CES 4 LIGNES ---
-    MAIL_PORT = 587,
-    MAIL_SERVER = "smtp.googlemail.com", # Astuce : Cette adresse est souvent plus fiable
-    MAIL_STARTTLS = True, # On réactive le mode standard
-    MAIL_SSL_TLS = False,
-    # -------------------------------
+    MAIL_PORT = 465,               # On reste sur le port sécurisé
+    MAIL_SERVER = "smtp.gmail.com",
+    MAIL_STARTTLS = False,         # IMPORTANT : False pour le port 465
+    MAIL_SSL_TLS = True,           # IMPORTANT : True pour le port 465
     
     USE_CREDENTIALS = True,
     VALIDATE_CERTS = True
