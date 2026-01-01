@@ -3,18 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PyShort - Analytics</title>
+    <title>PyShort - Raccourcissez, Partagez, Analysez.</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+        /* UTILS */
         .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        
+        /* HERO SECTION */
+        .hero { padding: 60px 0; text-align: center; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 20px; margin-bottom: 40px; }
+        .hero h1 { font-size: 3em; color: #1095c1; margin-bottom: 10px; }
+        .hero p { font-size: 1.2em; color: #555; max-width: 600px; margin: 0 auto 30px auto; }
+        
+        /* FEATURES */
+        .feature-card { padding: 20px; border: 1px solid #eee; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; }
+        .icon { font-size: 2em; margin-bottom: 10px; display: block; }
+
+        /* DASHBOARD */
         .dashboard-table { margin-top: 30px; }
         .delete-btn { background-color: #d93526; border-color: #d93526; padding: 5px 10px; font-size: 0.8em; }
         .stats-btn { background-color: #1095c1; border-color: #1095c1; padding: 5px 10px; font-size: 0.8em; margin-right: 5px; }
-        .auth-buttons { display: flex; gap: 10px; }
         .pro-badge { color: #FFD700; font-weight: bold; border: 1px solid #FFD700; padding: 5px 10px; border-radius: 20px; }
         
-        /* Style de la fenêtre modale (Pop-up) */
+        /* MODAL */
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; justify-content: center; align-items: center; }
         .modal-content { background: #1f2937; padding: 20px; border-radius: 10px; width: 90%; max-width: 600px; color: white; }
     </style>
@@ -27,65 +40,100 @@
             </ul>
             <ul>
                 <li id="proBadge" class="hidden"><span class="pro-badge">🌟 MEMBRE PRO</span></li>
+                <li><a href="#" onclick="showLogin()" id="navLoginBtn">Connexion</a></li>
                 <li><a href="#" onclick="showPricing()" id="premiumBtn" class="hidden">👑 Devenir Premium</a></li>
-                <li><a href="#" onclick="logout()" id="logoutBtn" class="hidden">Se déconnecter</a></li>
+                <li><a href="#" onclick="showApp()" id="dashboardBtn" class="hidden">Dashboard</a></li>
+                <li><a href="#" onclick="logout()" id="logoutBtn" class="hidden">Déconnexion</a></li>
             </ul>
         </nav>
 
-        <section id="loginSection">
-            <article>
-                <header>Connexion</header>
-                <input type="email" id="email" placeholder="Email">
-                <input type="password" id="password" placeholder="Mot de passe">
-                <div class="auth-buttons">
-                    <button onclick="login()">Se connecter</button>
-                    <button onclick="register()" class="secondary outline">Créer un compte</button>
+        <section id="landingSection">
+            <div class="hero">
+                <h1>Domptez vos liens.</h1>
+                <p>La solution ultime pour raccourcir vos URL, suivre vos clics en temps réel et booster votre marketing.</p>
+                <div class="grid">
+                    <button onclick="showLogin()">Commencer gratuitement</button>
+                    <button class="secondary outline" onclick="showPricing()">Voir les offres</button>
                 </div>
-                <p id="msgBox"></p>
+            </div>
+
+            <div class="grid-3">
+                <div class="feature-card">
+                    <span class="icon">⚡</span>
+                    <h3>Ultra Rapide</h3>
+                    <p>Redirections instantanées et infrastructure haute performance.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="icon">📊</span>
+                    <h3>Analytiques</h3>
+                    <p>Suivez chaque clic. Graphiques détaillés pour nos membres PRO.</p>
+                </div>
+                <div class="feature-card">
+                    <span class="icon">🔒</span>
+                    <h3>Sécurisé</h3>
+                    <p>Vos données sont protégées et vos liens sont HTTPS par défaut.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="loginSection" class="hidden">
+            <article>
+                <header class="text-center">Bienvenue sur PyShort</header>
+                <div class="grid">
+                    <div>
+                        <h3>Se connecter</h3>
+                        <input type="email" id="email" placeholder="Email">
+                        <input type="password" id="password" placeholder="Mot de passe">
+                        <button onclick="login()">Connexion</button>
+                    </div>
+                    <div style="border-left: 1px solid #ccc; padding-left: 20px;">
+                        <h3>Nouveau ?</h3>
+                        <p>Créez un compte en 10 secondes pour gérer vos liens.</p>
+                        <input type="email" id="reg_email" placeholder="Email">
+                        <input type="password" id="reg_password" placeholder="Mot de passe">
+                        <button onclick="register()" class="secondary">Créer mon compte</button>
+                    </div>
+                </div>
+                <p id="msgBox" class="text-center"></p>
+                <p class="text-center"><a href="#" onclick="showLanding()">Retour à l'accueil</a></p>
             </article>
         </section>
 
         <section id="pricingSection" class="hidden">
-            <h2 style="text-align: center;">Offres</h2>
+            <h2 class="text-center">Nos Tarifs</h2>
             <div class="grid">
-                <article>
-                    <header>Gratuit</header>
-                    <h3>0 €</h3>
-                    <ul><li>Liens aléatoires</li><li>Pubs</li></ul>
-                    <button class="secondary outline" onclick="showApp()">Continuer</button>
+                <article class="text-center">
+                    <header>Découverte</header>
+                    <h3>0 € <small>/ mois</small></h3>
+                    <ul><li>Liens aléatoires</li><li>Gestion basique</li><li>Pubs</li></ul>
+                    <button class="secondary outline" onclick="showApp()">Choisir</button>
                 </article>
-                <article style="border: 2px solid #1095c1;">
-                    <header>👑 PRO</header>
-                    <h3>4.99 €</h3>
-                    <ul><li>Alias Personnalisés</li><li><strong>Graphiques de Clics</strong></li></ul>
+                <article class="text-center" style="border: 2px solid #1095c1; transform: scale(1.05);">
+                    <header>👑 BUSINESS</header>
+                    <h3>4.99 € <small>/ mois</small></h3>
+                    <ul><li>Alias Personnalisés</li><li><strong>Graphiques de Clics</strong></li><li>Support VIP</li></ul>
                     <button onclick="startPayment()">Passer PRO</button>
                 </article>
             </div>
+            <p class="text-center"><a href="#" onclick="checkAuthRedirect()">Retour</a></p>
         </section>
 
         <section id="appSection" class="hidden">
             <article>
-                <header>✨ Nouveau lien</header>
+                <header>✨ Raccourcir un lien</header>
                 <div class="grid">
-                    <input type="url" id="longUrl" placeholder="https://..." required>
-                    <input type="text" id="customKey" placeholder="Alias optionnel">
-                    <button onclick="shorten()">Raccourcir</button>
+                    <input type="url" id="longUrl" placeholder="https://votre-site-tres-long.com/..." required>
+                    <input type="text" id="customKey" placeholder="Alias (ex: promo-ete)">
+                    <button onclick="shorten()">Générer</button>
                 </div>
-                <p id="result" class="hidden">Lien prêt : <a href="#" id="shortLink" target="_blank">...</a></p>
+                <p id="result" class="hidden text-center">👉 <a href="#" id="shortLink" target="_blank">...</a></p>
             </article>
 
             <div class="dashboard-table">
-                <h3>📊 Mes Liens</h3>
+                <h3>📊 Vos Performances</h3>
                 <figure>
                     <table role="grid">
-                        <thead>
-                            <tr>
-                                <th>Lien Court</th>
-                                <th>Origine</th>
-                                <th>Clics</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Lien Court</th><th>Cible</th><th>Clics</th><th>Actions</th></tr></thead>
                         <tbody id="linksTableBody"></tbody>
                     </table>
                 </figure>
@@ -97,43 +145,84 @@
             <div class="modal-content">
                 <h3 id="chartTitle">Statistiques</h3>
                 <canvas id="myChart"></canvas>
-                <br>
-                <button class="secondary" onclick="closeChart()">Fermer</button>
+                <br><button class="secondary" onclick="closeChart()">Fermer</button>
             </div>
         </div>
 
+        <footer class="text-center" style="margin-top: 50px; color: #888; font-size: 0.8em;">
+            <p>© 2026 PyShort Inc. Fait avec ❤️ et Python.</p>
+        </footer>
     </main>
 
     <script>
-        let myChartInstance = null; // Pour stocker le graphique
+        // --- GESTION DE L'AFFICHAGE ---
+        function hideAll() {
+            ['landingSection', 'loginSection', 'pricingSection', 'appSection'].forEach(id => 
+                document.getElementById(id).classList.add('hidden')
+            );
+        }
 
-        // --- AUTH & NAVIGATION ---
-        async function register() { /* ... Idem avant ... */ 
-            const email = document.getElementById('email').value; const password = document.getElementById('password').value;
-            await fetch('/register', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({email, password})});
-            alert("Compte créé !");
+        function showLanding() {
+            hideAll();
+            document.getElementById('landingSection').classList.remove('hidden');
+            document.getElementById('navLoginBtn').classList.remove('hidden');
+            document.getElementById('dashboardBtn').classList.add('hidden');
+            document.getElementById('logoutBtn').classList.add('hidden');
         }
-        async function login() { 
-            const email = document.getElementById('email').value; const password = document.getElementById('password').value;
-            const formData = new FormData(); formData.append('username', email); formData.append('password', password);
-            const res = await fetch('/token', { method: 'POST', body: formData });
-            if(res.ok) { const data = await res.json(); localStorage.setItem('token', data.access_token); showApp(); }
+
+        function showLogin() {
+            hideAll();
+            document.getElementById('loginSection').classList.remove('hidden');
         }
-        function logout() { localStorage.removeItem('token'); location.reload(); }
-        
-        function showApp() { 
-            document.getElementById('loginSection').classList.add('hidden');
-            document.getElementById('pricingSection').classList.add('hidden');
-            document.getElementById('appSection').classList.remove('hidden');
-            document.getElementById('logoutBtn').classList.remove('hidden');
-            loadMyLinks(); 
-        }
+
         function showPricing() {
-            document.getElementById('appSection').classList.add('hidden');
+            hideAll();
             document.getElementById('pricingSection').classList.remove('hidden');
         }
 
-        // --- LIENS & STATS ---
+        function showApp() {
+            hideAll();
+            document.getElementById('appSection').classList.remove('hidden');
+            // Navbar update
+            document.getElementById('navLoginBtn').classList.add('hidden');
+            document.getElementById('dashboardBtn').classList.remove('hidden');
+            document.getElementById('logoutBtn').classList.remove('hidden');
+            loadMyLinks();
+        }
+
+        function checkAuthRedirect() {
+            if(localStorage.getItem('token')) showApp();
+            else showLanding();
+        }
+
+        // --- AUTH ---
+        async function register() {
+            const email = document.getElementById('reg_email').value;
+            const password = document.getElementById('reg_password').value;
+            try {
+                const res = await fetch('/register', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password})});
+                if(res.ok) alert("Compte créé ! Connectez-vous à gauche.");
+                else alert("Erreur inscription");
+            } catch(e) { console.error(e); }
+        }
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const formData = new FormData(); formData.append('username', email); formData.append('password', password);
+            const res = await fetch('/token', { method: 'POST', body: formData });
+            if(res.ok) {
+                const data = await res.json();
+                localStorage.setItem('token', data.access_token);
+                showApp();
+            } else {
+                document.getElementById('msgBox').innerText = "Identifiants incorrects";
+            }
+        }
+
+        function logout() { localStorage.removeItem('token'); showLanding(); }
+
+        // --- CORE FEATURES ---
         async function shorten() {
             const token = localStorage.getItem('token');
             const res = await fetch('/shorten', {
@@ -141,8 +230,16 @@
                 headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                 body: JSON.stringify({ url: document.getElementById('longUrl').value, custom_key: document.getElementById('customKey').value })
             });
-            if(res.ok) { loadMyLinks(); document.getElementById('result').classList.remove('hidden'); }
-            else if(res.status === 403) { if(confirm("Passer PRO ?")) showPricing(); }
+            const data = await res.json();
+            if(res.ok) { 
+                loadMyLinks(); 
+                const fullLink = window.location.origin + "/" + data.short_key;
+                const resultP = document.getElementById('result');
+                resultP.innerHTML = `👉 <a href="${fullLink}" target="_blank">${fullLink}</a>`;
+                resultP.classList.remove('hidden');
+            }
+            else if(res.status === 403) { if(confirm("Réservé aux membres PRO. Voir les offres ?")) showPricing(); }
+            else { alert(data.detail); }
         }
 
         async function loadMyLinks() {
@@ -151,29 +248,24 @@
             
             if (res.ok) {
                 const user = await res.json();
-                
-                // Gestion de l'affichage Premium/Gratuit
+                // Gestion UI Premium
                 if (user.is_premium) {
                     document.getElementById('premiumBtn').classList.add('hidden');
                     document.getElementById('proBadge').classList.remove('hidden');
+                    document.getElementById('customKey').placeholder = "Votre alias personnalisé";
                 } else {
                     document.getElementById('premiumBtn').classList.remove('hidden');
                     document.getElementById('proBadge').classList.add('hidden');
+                    document.getElementById('customKey').placeholder = "Alias (ex: google) - PRO seulement";
                 }
 
                 const tbody = document.getElementById('linksTableBody');
                 tbody.innerHTML = ''; 
-                
                 user.items.forEach(item => {
-                    // On recrée le lien complet pour qu'il soit cliquable
                     const shortUrl = window.location.origin + "/" + item.short_key;
-                    
-                    // On prépare les données du graphique
                     const historyData = JSON.stringify(item.click_history);
-                    
                     tbody.innerHTML += `<tr>
                         <td><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
-                        
                         <td>${item.url.substring(0, 20)}...</td>
                         <td><strong>${item.clicks}</strong></td>
                         <td>
@@ -182,55 +274,47 @@
                         </td>
                     </tr>`;
                 });
+            } else {
+                // Token expiré ou invalide
+                logout();
             }
         }
 
-        // --- FONCTION GRAPHIQUE ---
+        // --- GRAPHIQUES ---
+        let myChartInstance = null;
         function openChart(shortKey, history) {
             document.getElementById('chartModal').classList.remove('hidden');
             document.getElementById('chartTitle').innerText = "Stats pour /" + shortKey;
-
-            // 1. Préparer les données (compter les clics par jour)
+            
             const clicksByDate = {};
             history.forEach(h => {
-                const date = new Date(h.timestamp).toLocaleDateString(); // "01/01/2026"
+                const date = new Date(h.timestamp).toLocaleDateString();
                 clicksByDate[date] = (clicksByDate[date] || 0) + 1;
             });
 
-            const labels = Object.keys(clicksByDate);
-            const data = Object.values(clicksByDate);
-
-            // 2. Dessiner le graphique
             const ctx = document.getElementById('myChart').getContext('2d');
-            
-            // Si un graphique existe déjà, on le détruit pour pas qu'ils se superposent
             if(myChartInstance) myChartInstance.destroy();
 
             myChartInstance = new Chart(ctx, {
-                type: 'line',
+                type: 'bar', // J'ai mis 'bar' (bâtons) au lieu de 'line', ça rend souvent mieux pour des clics
                 data: {
-                    labels: labels,
+                    labels: Object.keys(clicksByDate),
                     datasets: [{
-                        label: 'Nombre de clics',
-                        data: data,
-                        borderColor: '#1095c1',
-                        backgroundColor: 'rgba(16, 149, 193, 0.2)',
-                        borderWidth: 2,
-                        fill: true
+                        label: 'Clics par jour',
+                        data: Object.values(clicksByDate),
+                        backgroundColor: '#1095c1'
                     }]
                 },
                 options: { scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
             });
         }
+        function closeChart() { document.getElementById('chartModal').classList.add('hidden'); }
 
-        function closeChart() {
-            document.getElementById('chartModal').classList.add('hidden');
-        }
+        async function deleteLink(k) { if(confirm("Sûr ?")) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); } }
+        async function startPayment() { const u = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; window.location.href = u; }
 
-        async function deleteLink(k) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); }
-        async function startPayment() { /* Code Stripe... */ window.location.href = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; }
-
-        if (localStorage.getItem('token')) showApp();
+        // --- INIT ---
+        checkAuthRedirect();
     </script>
 </body>
 </html>
