@@ -256,10 +256,10 @@ mail_conf = ConnectionConfig(
     MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
     MAIL_FROM = os.getenv("MAIL_USERNAME"),
-    MAIL_PORT = 587,
+    MAIL_PORT = 465,  # <--- On change le port
     MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = True,
-    MAIL_SSL_TLS = False,
+    MAIL_STARTTLS = False, # <--- On désactive le démarrage progressif
+    MAIL_SSL_TLS = True,   # <--- On active le SSL direct
     USE_CREDENTIALS = True,
     VALIDATE_CERTS = True
 )
