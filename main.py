@@ -2,6 +2,8 @@ import string
 import random
 import os
 import stripe
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
+from pydantic import EmailStr, BaseModel
 from fastapi import FastAPI, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -248,3 +250,95 @@ def upgrade_me(
     db.commit()
     return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
 
+# --- CONFIGURATION EMAIL ---
+# On récupère les infos secrètes depuis les variables d'environnement
+mail_conf = ConnectionConfig(
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
+    MAIL_FROM = os.getenv("MAIL_USERNAME"),
+    MAIL_PORT = 587,
+    MAIL_SERVER = "smtp.gmail.com",
+    MAIL_STARTTLS = True,
+    MAIL_SSL_TLS = False,
+    USE_CREDENTIALS = True,
+    VALIDATE_CERTS = True
+)
+
+# --- ROUTE MOT DE PASSE OUBLIÉ ---
+
+class EmailSchema(BaseModel):
+    email: EmailStr
+
+@app.post("/forgot-password")
+async def forgot_password(email_data: EmailSchema, db: Session = Depends(get_db)):
+    # 1. On vérifie si l'email existe
+    user = db.query(models.User).filter(models.User.email == email_data.email).first()
+    if not user:
+        return {"message": "Si cet email existe, un lien a été envoyé."}
+
+    # 2. On crée un token de réinitialisation (valable 15 min)
+    # On réutilise ta fonction auth existante mais avec un sujet spécial
+    access_token_expires = timedelta(minutes=15)
+    reset_token = auth.create_access_token(
+        data={"sub": user.email, "type": "reset"}, # On ajoute "type": "reset" pour différencier d'un login normal
+        expires_delta=access_token_expires
+    )
+
+    # 3. On prépare l'email
+    reset_link = f"https://pyshort-eds1.onrender.com/reset-password?token={reset_token}"
+    
+    html = f"""
+    <h3>Réinitialisation de mot de passe</h3>
+    <p>Cliquez sur le lien ci-dessous pour changer votre mot de passe (valable 15min) :</p>
+    <a href="{reset_link}">Changer mon mot de passe</a>
+    <br>
+    <p>Si vous n'avez rien demandé, ignorez cet email.</p>
+    """
+
+    message = MessageSchema(
+        subject="PyShort - Réinitialisation mot de passe",
+        recipients=[user.email],
+        body=html,
+        subtype=MessageType.html
+    )
+
+    # 4. On envoie
+    fm = FastMail(mail_conf)
+    await fm.send_message(message)
+    
+    return {"message": "Email envoyé !"}
+
+# --- ROUTE POUR AFFICHER LA PAGE DE CHANGEMENT DE MDP ---
+@app.get("/reset-password")
+def reset_password_page(token: str, request: Request):
+    # On renvoie une page HTML simple pour saisir le nouveau mot de passe
+    return templates.TemplateResponse("reset_password.html", {"request": request, "token": token})
+
+# --- ROUTE POUR VALIDER LE CHANGEMENT ---
+class NewPasswordSchema(BaseModel):
+    token: str
+    new_password: str
+
+@app.post("/reset-password-confirm")
+def reset_password_confirm(data: NewPasswordSchema, db: Session = Depends(get_db)):
+    # 1. On décode le token
+    try:
+        payload = auth.jwt.decode(data.token, auth.SECRET_KEY, algorithms=[auth.ALGORITHM])
+        email = payload.get("sub")
+        token_type = payload.get("type")
+        
+        if email is None or token_type != "reset":
+            raise HTTPException(status_code=400, detail="Token invalide")
+            
+    except auth.JWTError:
+        raise HTTPException(status_code=400, detail="Token expiré ou invalide")
+
+    # 2. On change le mot de passe
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+    user.hashed_password = auth.get_password_hash(data.new_password)
+    db.commit()
+
+    return {"message": "Mot de passe modifié avec succès ! Connectez-vous."}

@@ -85,6 +85,10 @@
                         <input type="email" id="email" placeholder="Email">
                         <input type="password" id="password" placeholder="Mot de passe">
                         <button onclick="login()">Connexion</button>
+                        
+                        <p style="font-size: 0.8em; margin-top: 10px;">
+                            <a href="#" onclick="forgotPassword()">Mot de passe oublié ?</a>
+                        </p>
                     </div>
                     <div style="border-left: 1px solid #ccc; padding-left: 20px;">
                         <h3>Nouveau ?</h3>
@@ -183,7 +187,6 @@
         function showApp() {
             hideAll();
             document.getElementById('appSection').classList.remove('hidden');
-            // Navbar update
             document.getElementById('navLoginBtn').classList.add('hidden');
             document.getElementById('dashboardBtn').classList.remove('hidden');
             document.getElementById('logoutBtn').classList.remove('hidden');
@@ -222,6 +225,22 @@
 
         function logout() { localStorage.removeItem('token'); showLanding(); }
 
+        // --- ICI : LA NOUVELLE FONCTION POUR LE MOT DE PASSE ---
+        async function forgotPassword() {
+            const email = prompt("Entrez votre email pour recevoir le lien de réinitialisation :");
+            if(email) {
+                try {
+                    const res = await fetch('/forgot-password', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ email })
+                    });
+                    // On affiche le message quoi qu'il arrive (sécurité)
+                    alert("Si cet email existe, un lien a été envoyé ! Vérifiez vos spams.");
+                } catch(e) { console.error(e); }
+            }
+        }
+
         // --- CORE FEATURES ---
         async function shorten() {
             const token = localStorage.getItem('token');
@@ -248,7 +267,6 @@
             
             if (res.ok) {
                 const user = await res.json();
-                // Gestion UI Premium
                 if (user.is_premium) {
                     document.getElementById('premiumBtn').classList.add('hidden');
                     document.getElementById('proBadge').classList.remove('hidden');
@@ -274,10 +292,7 @@
                         </td>
                     </tr>`;
                 });
-            } else {
-                // Token expiré ou invalide
-                logout();
-            }
+            } else { logout(); }
         }
 
         // --- GRAPHIQUES ---
@@ -296,7 +311,7 @@
             if(myChartInstance) myChartInstance.destroy();
 
             myChartInstance = new Chart(ctx, {
-                type: 'bar', // J'ai mis 'bar' (bâtons) au lieu de 'line', ça rend souvent mieux pour des clics
+                type: 'bar',
                 data: {
                     labels: Object.keys(clicksByDate),
                     datasets: [{
@@ -313,7 +328,6 @@
         async function deleteLink(k) { if(confirm("Sûr ?")) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); } }
         async function startPayment() { const u = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; window.location.href = u; }
 
-        // --- INIT ---
         checkAuthRedirect();
     </script>
 </body>
