@@ -148,10 +148,11 @@
         async function loadMyLinks() {
             const token = localStorage.getItem('token');
             const res = await fetch('/users/me', { headers: { 'Authorization': 'Bearer ' + token } });
+            
             if (res.ok) {
                 const user = await res.json();
                 
-                // Gestion UI Premium
+                // Gestion de l'affichage Premium/Gratuit
                 if (user.is_premium) {
                     document.getElementById('premiumBtn').classList.add('hidden');
                     document.getElementById('proBadge').classList.remove('hidden');
@@ -162,12 +163,17 @@
 
                 const tbody = document.getElementById('linksTableBody');
                 tbody.innerHTML = ''; 
+                
                 user.items.forEach(item => {
-                    // On prépare les données pour le graphique
+                    // On recrée le lien complet pour qu'il soit cliquable
+                    const shortUrl = window.location.origin + "/" + item.short_key;
+                    
+                    // On prépare les données du graphique
                     const historyData = JSON.stringify(item.click_history);
                     
                     tbody.innerHTML += `<tr>
-                        <td>/${item.short_key}</td>
+                        <td><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
+                        
                         <td>${item.url.substring(0, 20)}...</td>
                         <td><strong>${item.clicks}</strong></td>
                         <td>
