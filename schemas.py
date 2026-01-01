@@ -1,18 +1,27 @@
 from pydantic import BaseModel
 from typing import List, Optional
+from datetime import datetime
+
+# --- CLICK SCHEMAS ---
+class ClickBase(BaseModel):
+    timestamp: datetime
+
+    class Config:
+        orm_mode = True
 
 # --- URL SCHEMAS ---
 class URLBase(BaseModel):
     url: str
 
 class URLCreate(URLBase):
-    custom_key: Optional[str] = None # Optionnel pour le frontend
+    custom_key: Optional[str] = None
 
 class URLItem(URLBase):
     id: int
     short_key: str
     clicks: int
     owner_id: int
+    click_history: List[ClickBase] = [] # <--- C'est ici qu'on fait passer l'historique !
 
     class Config:
         orm_mode = True
@@ -26,7 +35,7 @@ class UserCreate(UserBase):
 
 class UserResponse(UserBase):
     id: int
-    is_premium: bool = False  # <--- VOICI LA LIGNE QUI MANQUAIT !
+    is_premium: bool = False
     items: List[URLItem] = []
 
     class Config:
