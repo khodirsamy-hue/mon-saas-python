@@ -271,18 +271,50 @@ class EmailSchema(BaseModel):
 
 @app.post("/forgot-password")
 async def forgot_password(email_data: EmailSchema, db: Session = Depends(get_db)):
+    print(f"🔍 Recherche de l'utilisateur : {email_data.email}") # LOG 1
+
     # 1. On vérifie si l'email existe
     user = db.query(models.User).filter(models.User.email == email_data.email).first()
+    
     if not user:
+        print("❌ UTILISATEUR INTROUVABLE DANS LA BDD") # LOG 2
         return {"message": "Si cet email existe, un lien a été envoyé."}
 
-    # 2. On crée un token de réinitialisation (valable 15 min)
-    # On réutilise ta fonction auth existante mais avec un sujet spécial
+    print(f"✅ Utilisateur trouvé (ID: {user.id}). Préparation de l'email...") # LOG 3
+
+    # 2. On crée un token de réinitialisation
     access_token_expires = timedelta(minutes=15)
     reset_token = auth.create_access_token(
-        data={"sub": user.email, "type": "reset"}, # On ajoute "type": "reset" pour différencier d'un login normal
+        data={"sub": user.email, "type": "reset"},
         expires_delta=access_token_expires
     )
+
+    # 3. On prépare l'email
+    reset_link = f"https://pyshort-eds1.onrender.com/reset-password?token={reset_token}"
+    
+    html = f"""
+    <h3>Réinitialisation de mot de passe</h3>
+    <p>Cliquez sur le lien ci-dessous pour changer votre mot de passe :</p>
+    <a href="{reset_link}">Changer mon mot de passe</a>
+    """
+
+    message = MessageSchema(
+        subject="PyShort - Reset Password",
+        recipients=[user.email],
+        body=html,
+        subtype=MessageType.html
+    )
+
+    # 4. On envoie
+    try:
+        fm = FastMail(mail_conf)
+        await fm.send_message(message)
+        print("🚀 EMAIL ENVOYÉ AU SERVEUR GMAIL AVEC SUCCÈS") # LOG 4
+    except Exception as e:
+        print(f"💥 ERREUR CRITIQUE PENDANT L'ENVOI : {e}") # LOG 5
+    
+    return {"message": "Email envoyé !"}
+    
 
     # 3. On prépare l'email
     reset_link = f"https://pyshort-eds1.onrender.com/reset-password?token={reset_token}"
