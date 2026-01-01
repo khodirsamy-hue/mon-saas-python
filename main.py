@@ -250,19 +250,20 @@ def upgrade_me(
     db.commit()
     return {"message": "Félicitations ! Vous êtes maintenant membre VIP (Premium) gratuitement."}
 
-# --- CONFIGURATION EMAIL (VERSION SSL STRICTE) ---
+# --- CONFIGURATION EMAIL (VERSION ROBUSTE) ---
 mail_conf = ConnectionConfig(
     MAIL_USERNAME = os.getenv("MAIL_USERNAME"),
     MAIL_PASSWORD = os.getenv("MAIL_PASSWORD"),
     MAIL_FROM = os.getenv("MAIL_USERNAME"),
     
-    MAIL_PORT = 465,               # On reste sur le port sécurisé
+    MAIL_PORT = 587,               # Retour au standard Gmail
     MAIL_SERVER = "smtp.gmail.com",
-    MAIL_STARTTLS = False,         # IMPORTANT : False pour le port 465
-    MAIL_SSL_TLS = True,           # IMPORTANT : True pour le port 465
+    MAIL_STARTTLS = True,          # On active le TLS
+    MAIL_SSL_TLS = False,          # On désactive le SSL pur
     
     USE_CREDENTIALS = True,
-    VALIDATE_CERTS = True
+    VALIDATE_CERTS = True,
+    TIMEOUT = 60                   # <--- L'AJOUT IMPORTANT : On force l'attente
 )
 
 # --- ROUTE MOT DE PASSE OUBLIÉ ---
