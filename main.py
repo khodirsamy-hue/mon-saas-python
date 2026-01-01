@@ -201,7 +201,13 @@ def redirect_to_site(short_key: str, db: Session = Depends(get_db)):
     if url_item is None:
         raise HTTPException(status_code=404, detail="Lien introuvable")
     
+    # 1. On met à jour le compteur total
     url_item.clicks += 1
+    
+    # 2. NOUVEAU : On enregistre l'événement "Clic" avec l'heure actuelle
+    new_click = models.Click(link_id=url_item.id)
+    db.add(new_click)
+    
     db.commit()
     return RedirectResponse(url=url_item.url)
 
