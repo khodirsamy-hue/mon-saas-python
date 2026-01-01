@@ -322,7 +322,38 @@
         }
         function closeChart() { document.getElementById('chartModal').classList.add('hidden'); }
         async function deleteLink(k) { if(confirm("Supprimer ?")) { await fetch('/links/'+k, { method: 'DELETE', headers: {'Authorization': 'Bearer '+localStorage.getItem('token')} }); loadMyLinks(); } }
-        async function startPayment() { window.location.href = (await (await fetch('/create-checkout-session', {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}})).json()).checkout_url; }
+        async function startPayment() { 
+            const token = localStorage.getItem('token');
+            
+            // 1. Sécurité : Si pas connecté, on envoie au login
+            if (!token) {
+                alert("Vous devez être connecté pour souscrire un abonnement.");
+                showLogin();
+                return;
+            }
+
+            // 2. Si connecté, on lance le paiement
+            try {
+                const res = await fetch('/create-checkout-session', {
+                    method: 'POST', 
+                    headers: {'Authorization': 'Bearer ' + token}
+                });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.checkout_url) {
+                        window.location.href = data.checkout_url;
+                    }
+                } else {
+                    // Si le token est périmé
+                    alert("Votre session a expiré. Veuillez vous reconnecter.");
+                    logout();
+                }
+            } catch (e) {
+                console.error("Erreur paiement:", e);
+                alert("Une erreur est survenue.");
+            }
+        }
 
         if(localStorage.getItem('token')) showApp(); else showLanding();
     </script>
