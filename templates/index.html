@@ -191,6 +191,7 @@
                             <tr>
                                 <th class="px-6 py-4">Lien Court</th>
                                 <th class="px-6 py-4">Destination</th>
+                                <th class="px-6 py-4 text-center">QR</th>
                                 <th class="px-6 py-4 text-center">Clics</th>
                                 <th class="px-6 py-4 text-right">Actions</th>
                             </tr>
@@ -363,11 +364,18 @@
                 user.items.forEach(item => {
                     const shortUrl = window.location.origin + "/" + item.short_key;
                     const historyData = JSON.stringify(item.click_history);
+                    // On génère l'URL du QR Code
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${shortUrl}`;
                     
                     tbody.innerHTML += `
                     <tr class="hover:bg-slate-50 transition">
                         <td class="px-6 py-4 font-medium text-brand-600"><a href="${shortUrl}" target="_blank">/${item.short_key}</a></td>
                         <td class="px-6 py-4 text-slate-500 truncate max-w-xs">${item.url}</td>
+                        <td class="px-6 py-4 text-center">
+                             <a href="${qrUrl}" download target="_blank" class="inline-block hover:scale-110 transition">
+                                <img src="${qrUrl}" alt="QR" class="w-8 h-8 rounded border border-slate-200">
+                            </a>
+                        </td>
                         <td class="px-6 py-4 text-center font-bold bg-slate-100 rounded-lg text-slate-600">${item.clicks}</td>
                         <td class="px-6 py-4 text-right space-x-2 flex justify-end">
                             <button onclick='openChart("${item.short_key}", ${historyData})' class="text-indigo-500 hover:text-indigo-700 font-medium text-sm border border-indigo-200 px-3 py-1 rounded-md hover:bg-indigo-50 transition flex items-center gap-1">
